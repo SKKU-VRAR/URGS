@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class CleanableDish : MonoBehaviour {
     //normal
-    int nowWashNum = 0;
+    float nowWashNum = 0;
     public int maxWashNum = 900;
     Material orignDish;
     public Material dirtyDish;
 
     //for Manage
     public static int cleanDishNum = 0;
+    public static int WashingNum = 0;
     bool isClean = false;
 
     //for TriggerStay
@@ -29,11 +30,19 @@ public class CleanableDish : MonoBehaviour {
         {
             CleanDishManager.numOfOrganizedDish++;
         }
-
-        if (nowWashNum >= maxWashNum)
+	//When washing dish
+        if (nowWashNum >= maxWashNum) 
             return;
         if (other.tag == "Water")
+	{
             nowWashNum++;
+	    if(Washing == 1) return;
+	    else
+	    {
+		Washing = 1;
+		WashingNum++;
+	    }
+	}
     }
 
     private void OnTriggerExit(Collider other)
@@ -44,8 +53,15 @@ public class CleanableDish : MonoBehaviour {
         }
 
         if (other.tag == "Water")
+	{
             if (nowWashNum >= maxWashNum && !isClean)
                 ToBeClean();
+	    if(Washing == 0) return;
+	    else
+	    {
+		Washing = 0;
+		WashingNum--;
+	}
     }
 
     private void OnTriggerStay(Collider other)
@@ -55,7 +71,7 @@ public class CleanableDish : MonoBehaviour {
             accTime += Time.deltaTime;
             if (accTime > delay)
             {
-                nowWashNum++;
+                nowWashNum += (float)(1 / System.Math.Pow(1.2, (float)WashingNum));
                 accTime = 0;
             }
             if (nowWashNum >= maxWashNum && !isClean)
@@ -65,6 +81,7 @@ public class CleanableDish : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision)
     {
+	//When felt on the floor
         if (collision.gameObject.tag == "Floor")
         {
             ToBeDirty();
